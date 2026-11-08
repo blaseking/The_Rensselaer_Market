@@ -1,0 +1,1474 @@
+{
+  "address": "81mLfBPT8MeJnCmbu62EZ978TePNcwfXH6UR4ii9pFou",
+  "metadata": {
+    "name": "grademarket",
+    "version": "0.1.0",
+    "spec": "0.1.0",
+    "description": "Pari-mutuel prediction markets on student grades, settled in SOL"
+  },
+  "instructions": [
+    {
+      "name": "buy",
+      "docs": [
+        "Buy outcome shares with SOL from your website balance, at the current AMM price.",
+        "Your payout per share (1 collateral unit if that side wins) is locked in at purchase;",
+        "later trading by others changes the price for new trades, not the value of shares you",
+        "already hold."
+      ],
+      "discriminator": [
+        102,
+        6,
+        61,
+        18,
+        1,
+        218,
+        235,
+        234
+      ],
+      "accounts": [
+        {
+          "name": "user",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "profile",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  114,
+                  111,
+                  102,
+                  105,
+                  108,
+                  101
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "user"
+              }
+            ]
+          }
+        },
+        {
+          "name": "market",
+          "writable": true
+        },
+        {
+          "name": "vault",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  118,
+                  97,
+                  117,
+                  108,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "market"
+              }
+            ]
+          }
+        },
+        {
+          "name": "position",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  111,
+                  115,
+                  105,
+                  116,
+                  105,
+                  111,
+                  110
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "market"
+              },
+              {
+                "kind": "account",
+                "path": "user"
+              }
+            ]
+          }
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "outcome_yes",
+          "type": "bool"
+        },
+        {
+          "name": "amount_in",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "create_market",
+      "docs": [
+        "Students can only open PersonalGrade markets attached to an existing ExamAverage",
+        "market; admins can only open ExamAverage markets. The creator becomes the resolver",
+        "and the market's sole liquidity provider, seeding it with `liquidity` SOL (from their",
+        "website balance) split evenly into the Yes/No AMM reserves (starting price: 50/50)."
+      ],
+      "discriminator": [
+        103,
+        226,
+        97,
+        235,
+        200,
+        188,
+        251,
+        254
+      ],
+      "accounts": [
+        {
+          "name": "creator",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "profile",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  114,
+                  111,
+                  102,
+                  105,
+                  108,
+                  101
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "creator"
+              }
+            ]
+          }
+        },
+        {
+          "name": "market",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  109,
+                  97,
+                  114,
+                  107,
+                  101,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "creator"
+              },
+              {
+                "kind": "arg",
+                "path": "market_id"
+              }
+            ]
+          }
+        },
+        {
+          "name": "vault",
+          "docs": [
+            "system-owned and can be debited via a signed system_program transfer."
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  118,
+                  97,
+                  117,
+                  108,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "market"
+              }
+            ]
+          }
+        },
+        {
+          "name": "parent_market",
+          "docs": [
+            "Required (and must be an ExamAverage market) when the creator is a Student;",
+            "must be absent when the creator is an Admin."
+          ],
+          "optional": true
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "market_id",
+          "type": "u64"
+        },
+        {
+          "name": "question",
+          "type": "string"
+        },
+        {
+          "name": "close_ts",
+          "type": "i64"
+        },
+        {
+          "name": "kind",
+          "type": {
+            "defined": {
+              "name": "MarketKind"
+            }
+          }
+        },
+        {
+          "name": "liquidity",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "deposit",
+      "docs": [
+        "Deposit SOL from your wallet into your website balance (held in your Profile account)."
+      ],
+      "discriminator": [
+        242,
+        35,
+        198,
+        137,
+        82,
+        225,
+        242,
+        182
+      ],
+      "accounts": [
+        {
+          "name": "owner",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "profile",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  114,
+                  111,
+                  102,
+                  105,
+                  108,
+                  101
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "owner"
+              }
+            ]
+          }
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "amount",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "initialize_config",
+      "docs": [
+        "One-time setup: whoever calls this first becomes the permanent admin."
+      ],
+      "discriminator": [
+        208,
+        127,
+        21,
+        1,
+        194,
+        190,
+        196,
+        70
+      ],
+      "accounts": [
+        {
+          "name": "initializer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "config",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "redeem",
+      "docs": [
+        "Redeem your winning shares 1:1 for SOL, credited to your website balance."
+      ],
+      "discriminator": [
+        184,
+        12,
+        86,
+        149,
+        70,
+        196,
+        97,
+        225
+      ],
+      "accounts": [
+        {
+          "name": "user",
+          "writable": true,
+          "signer": true,
+          "relations": [
+            "position"
+          ]
+        },
+        {
+          "name": "profile",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  114,
+                  111,
+                  102,
+                  105,
+                  108,
+                  101
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "user"
+              }
+            ]
+          }
+        },
+        {
+          "name": "market"
+        },
+        {
+          "name": "vault",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  118,
+                  97,
+                  117,
+                  108,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "market"
+              }
+            ]
+          }
+        },
+        {
+          "name": "position",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  111,
+                  115,
+                  105,
+                  116,
+                  105,
+                  111,
+                  110
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "market"
+              },
+              {
+                "kind": "account",
+                "path": "user"
+              }
+            ]
+          }
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "register_admin",
+      "docs": [
+        "Only the wallet recorded as admin in Config can register an admin profile."
+      ],
+      "discriminator": [
+        232,
+        95,
+        10,
+        59,
+        200,
+        222,
+        147,
+        38
+      ],
+      "accounts": [
+        {
+          "name": "owner",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "profile",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  114,
+                  111,
+                  102,
+                  105,
+                  108,
+                  101
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "owner"
+              }
+            ]
+          }
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "name",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "register_student",
+      "docs": [
+        "Self-attested registration: binds a student ID + display name to this wallet, once."
+      ],
+      "discriminator": [
+        108,
+        126,
+        219,
+        150,
+        153,
+        225,
+        102,
+        92
+      ],
+      "accounts": [
+        {
+          "name": "owner",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "profile",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  114,
+                  111,
+                  102,
+                  105,
+                  108,
+                  101
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "owner"
+              }
+            ]
+          }
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "student_id",
+          "type": "string"
+        },
+        {
+          "name": "name",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "resolve_market",
+      "docs": [
+        "Only the platform admin can settle a market's outcome, once trading has closed.",
+        "`Void` refunds everyone's cost basis (what they actually paid for shares they still",
+        "hold) instead of a Yes/No payout — use it when the result can't be determined."
+      ],
+      "discriminator": [
+        155,
+        23,
+        80,
+        173,
+        46,
+        74,
+        23,
+        239
+      ],
+      "accounts": [
+        {
+          "name": "market",
+          "writable": true
+        },
+        {
+          "name": "config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "admin",
+          "signer": true
+        }
+      ],
+      "args": [
+        {
+          "name": "resolution",
+          "type": {
+            "defined": {
+              "name": "Resolution"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "sell",
+      "docs": [
+        "Sell outcome shares you hold back into the AMM for SOL (credited to your website",
+        "balance), at the current price. Can be done any time before the market closes."
+      ],
+      "discriminator": [
+        51,
+        230,
+        133,
+        164,
+        1,
+        127,
+        131,
+        173
+      ],
+      "accounts": [
+        {
+          "name": "user",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "profile",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  114,
+                  111,
+                  102,
+                  105,
+                  108,
+                  101
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "user"
+              }
+            ]
+          }
+        },
+        {
+          "name": "market",
+          "writable": true
+        },
+        {
+          "name": "vault",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  118,
+                  97,
+                  117,
+                  108,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "market"
+              }
+            ]
+          }
+        },
+        {
+          "name": "position",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  111,
+                  115,
+                  105,
+                  116,
+                  105,
+                  111,
+                  110
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "market"
+              },
+              {
+                "kind": "account",
+                "path": "user"
+              }
+            ]
+          }
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "outcome_yes",
+          "type": "bool"
+        },
+        {
+          "name": "shares_in",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "submit_evidence",
+      "docs": [
+        "The market's creator attaches (or updates, before resolution) a short note and an",
+        "optional reference to an image hosted off-chain (a transaction can only carry about a",
+        "kilobyte of data, nowhere near enough for a real screenshot). Stored on-chain so the",
+        "admin can read it from any device — technically public like all on-chain data, but",
+        "the app's UI only ever surfaces it to the admin."
+      ],
+      "discriminator": [
+        12,
+        169,
+        228,
+        194,
+        229,
+        31,
+        44,
+        39
+      ],
+      "accounts": [
+        {
+          "name": "submitter",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "market"
+        },
+        {
+          "name": "evidence",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  101,
+                  118,
+                  105,
+                  100,
+                  101,
+                  110,
+                  99,
+                  101
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "market"
+              }
+            ]
+          }
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "note",
+          "type": "string"
+        },
+        {
+          "name": "image_ref",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "withdraw",
+      "docs": [
+        "Withdraw unused website balance back to your wallet."
+      ],
+      "discriminator": [
+        183,
+        18,
+        70,
+        156,
+        148,
+        109,
+        161,
+        34
+      ],
+      "accounts": [
+        {
+          "name": "owner",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "profile",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  114,
+                  111,
+                  102,
+                  105,
+                  108,
+                  101
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "owner"
+              }
+            ]
+          }
+        }
+      ],
+      "args": [
+        {
+          "name": "amount",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "withdraw_liquidity",
+      "docs": [
+        "The market's creator (sole liquidity provider) withdraws whatever's left of the",
+        "winning-side AMM reserve, once resolved. Callable once."
+      ],
+      "discriminator": [
+        149,
+        158,
+        33,
+        185,
+        47,
+        243,
+        253,
+        31
+      ],
+      "accounts": [
+        {
+          "name": "authority",
+          "writable": true,
+          "signer": true,
+          "relations": [
+            "market"
+          ]
+        },
+        {
+          "name": "profile",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  114,
+                  111,
+                  102,
+                  105,
+                  108,
+                  101
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "authority"
+              }
+            ]
+          }
+        },
+        {
+          "name": "market",
+          "writable": true
+        },
+        {
+          "name": "vault",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  118,
+                  97,
+                  117,
+                  108,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "market"
+              }
+            ]
+          }
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": []
+    }
+  ],
+  "accounts": [
+    {
+      "name": "Config",
+      "discriminator": [
+        155,
+        12,
+        170,
+        224,
+        30,
+        250,
+        204,
+        130
+      ]
+    },
+    {
+      "name": "Evidence",
+      "discriminator": [
+        160,
+        73,
+        93,
+        206,
+        99,
+        242,
+        62,
+        92
+      ]
+    },
+    {
+      "name": "Market",
+      "discriminator": [
+        219,
+        190,
+        213,
+        55,
+        0,
+        227,
+        198,
+        154
+      ]
+    },
+    {
+      "name": "Position",
+      "discriminator": [
+        170,
+        188,
+        143,
+        228,
+        122,
+        64,
+        247,
+        208
+      ]
+    },
+    {
+      "name": "Profile",
+      "discriminator": [
+        184,
+        101,
+        165,
+        188,
+        95,
+        63,
+        127,
+        188
+      ]
+    }
+  ],
+  "errors": [
+    {
+      "code": 6000,
+      "name": "QuestionTooLong",
+      "msg": "Question text is too long"
+    },
+    {
+      "code": 6001,
+      "name": "CloseTimeInPast",
+      "msg": "Close time must be in the future"
+    },
+    {
+      "code": 6002,
+      "name": "ZeroAmount",
+      "msg": "Bet amount must be greater than zero"
+    },
+    {
+      "code": 6003,
+      "name": "MarketResolved",
+      "msg": "Market is already resolved"
+    },
+    {
+      "code": 6004,
+      "name": "MarketClosed",
+      "msg": "Betting is closed for this market"
+    },
+    {
+      "code": 6005,
+      "name": "MarketNotResolved",
+      "msg": "Market has not been resolved yet"
+    },
+    {
+      "code": 6006,
+      "name": "MarketStillOpen",
+      "msg": "Betting is still open; wait for close time to resolve"
+    },
+    {
+      "code": 6007,
+      "name": "AlreadyClaimed",
+      "msg": "Winnings already claimed"
+    },
+    {
+      "code": 6008,
+      "name": "NotAuthority",
+      "msg": "Only the market's creator can resolve it"
+    },
+    {
+      "code": 6009,
+      "name": "NotBetOwner",
+      "msg": "This position does not belong to you"
+    },
+    {
+      "code": 6010,
+      "name": "MathOverflow",
+      "msg": "Math overflow"
+    },
+    {
+      "code": 6011,
+      "name": "InvalidStudentId",
+      "msg": "Student ID must be 1-32 characters"
+    },
+    {
+      "code": 6012,
+      "name": "InvalidName",
+      "msg": "Name must be 1-64 characters"
+    },
+    {
+      "code": 6013,
+      "name": "NotAdmin",
+      "msg": "Only the configured admin wallet can register as admin"
+    },
+    {
+      "code": 6014,
+      "name": "AdminMustCreateExamAverage",
+      "msg": "Admins can only create exam-average markets"
+    },
+    {
+      "code": 6015,
+      "name": "ExamAverageCannotHaveParent",
+      "msg": "Exam-average markets cannot have a parent market"
+    },
+    {
+      "code": 6016,
+      "name": "StudentMustCreatePersonalGrade",
+      "msg": "Students can only create personal-grade markets"
+    },
+    {
+      "code": 6017,
+      "name": "PersonalGradeNeedsParent",
+      "msg": "A personal-grade market must reference a parent exam-average market"
+    },
+    {
+      "code": 6018,
+      "name": "ParentMustBeExamAverage",
+      "msg": "The parent market must be an exam-average market"
+    },
+    {
+      "code": 6019,
+      "name": "PersonalGradeCloseTsMustMatchParent",
+      "msg": "A personal-grade market must close at the same time as its parent exam-average market"
+    },
+    {
+      "code": 6020,
+      "name": "InsufficientBalance",
+      "msg": "Insufficient website balance; deposit more SOL first"
+    },
+    {
+      "code": 6021,
+      "name": "ZeroSharesOut",
+      "msg": "This trade would mint zero shares"
+    },
+    {
+      "code": 6022,
+      "name": "ZeroAmountOut",
+      "msg": "This trade would pay out zero SOL"
+    },
+    {
+      "code": 6023,
+      "name": "InsufficientShares",
+      "msg": "You don't hold enough shares to sell that many"
+    },
+    {
+      "code": 6024,
+      "name": "LiquidityAlreadyWithdrawn",
+      "msg": "Liquidity has already been withdrawn from this market"
+    },
+    {
+      "code": 6025,
+      "name": "EvidenceNoteTooLong",
+      "msg": "Evidence note must be 280 characters or fewer"
+    },
+    {
+      "code": 6026,
+      "name": "EvidenceImageRefTooLong",
+      "msg": "Evidence image reference must be 128 characters or fewer"
+    }
+  ],
+  "types": [
+    {
+      "name": "Config",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "admin",
+            "type": "pubkey"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Evidence",
+      "docs": [
+        "A market's creator's note (and optional reference to an off-chain-hosted image)",
+        "supporting the outcome they'll resolve to. Readable by anyone who looks on-chain, like",
+        "all Solana account data — the app's own UI is what keeps it admin-only, not cryptography."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "market",
+            "type": "pubkey"
+          },
+          {
+            "name": "submitter",
+            "type": "pubkey"
+          },
+          {
+            "name": "note",
+            "type": "string"
+          },
+          {
+            "name": "image_ref",
+            "type": "string"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Market",
+      "docs": [
+        "A binary market backed by a constant-product AMM (yes_reserve * no_reserve = k).",
+        "Marginal price of Yes = no_reserve / (yes_reserve + no_reserve)."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "authority",
+            "type": "pubkey"
+          },
+          {
+            "name": "market_id",
+            "type": "u64"
+          },
+          {
+            "name": "question",
+            "type": "string"
+          },
+          {
+            "name": "close_ts",
+            "type": "i64"
+          },
+          {
+            "name": "resolved",
+            "type": "bool"
+          },
+          {
+            "name": "outcome",
+            "type": {
+              "defined": {
+                "name": "Outcome"
+              }
+            }
+          },
+          {
+            "name": "yes_reserve",
+            "type": "u64"
+          },
+          {
+            "name": "no_reserve",
+            "type": "u64"
+          },
+          {
+            "name": "liquidity_paid",
+            "docs": [
+              "The liquidity provider's original contribution; refunded to them in full on Void."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "kind",
+            "type": {
+              "defined": {
+                "name": "MarketKind"
+              }
+            }
+          },
+          {
+            "name": "parent_market",
+            "type": {
+              "option": "pubkey"
+            }
+          },
+          {
+            "name": "lp_withdrawn",
+            "type": "bool"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          },
+          {
+            "name": "vault_bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "MarketKind",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "ExamAverage"
+          },
+          {
+            "name": "PersonalGrade"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Outcome",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "Unresolved"
+          },
+          {
+            "name": "Yes"
+          },
+          {
+            "name": "No"
+          },
+          {
+            "name": "Void"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Position",
+      "docs": [
+        "A user's outcome-share holdings in one market, plus the cost basis still tied to those",
+        "shares (what they paid for the shares they currently hold, adjusted as they sell), used",
+        "to refund them exactly if the market is Void."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "market",
+            "type": "pubkey"
+          },
+          {
+            "name": "user",
+            "type": "pubkey"
+          },
+          {
+            "name": "yes_shares",
+            "type": "u64"
+          },
+          {
+            "name": "no_shares",
+            "type": "u64"
+          },
+          {
+            "name": "yes_cost",
+            "type": "u64"
+          },
+          {
+            "name": "no_cost",
+            "type": "u64"
+          },
+          {
+            "name": "redeemed",
+            "type": "bool"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Profile",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "owner",
+            "type": "pubkey"
+          },
+          {
+            "name": "role",
+            "type": {
+              "defined": {
+                "name": "Role"
+              }
+            }
+          },
+          {
+            "name": "student_id",
+            "type": "string"
+          },
+          {
+            "name": "name",
+            "type": "string"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Resolution",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "Yes"
+          },
+          {
+            "name": "No"
+          },
+          {
+            "name": "Void"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Role",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "Student"
+          },
+          {
+            "name": "Admin"
+          }
+        ]
+      }
+    }
+  ]
+}
